@@ -1,13 +1,14 @@
 
 import React from 'react'
 
-export const Header = () => {
+export const Header = (props) => {
   return (
     <header>
         <h1>
-            Grocieries List
+            {props.title}
         </h1>
     </header>
   )
 }
+
 export default Header;
