@@ -2,19 +2,48 @@
 import Header from './Header';
 import  Content  from './Content';
 import Footer from './Footer';
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import AddItem from './AddItem';
 import SearchItem from './SearchItem';
 
 
 
 function App() {
-  const [items,setitems]=useState(
-    JSON.parse(localStorage.getItem('shoppinglist'))
-   );
-      
-   const [newitem,setnewitem]=useState('');
-   const [search,setsearch]=useState('')
+  const API_URL ='http://localhost:3500/items';
+
+
+
+  const [items,setitems]=useState([]);
+  const [newitem,setnewitem]=useState('');
+  const [search,setsearch]=useState('');
+  const [fetcherror,setfetcherror]=useState(null);
+  const [isloading,setisloading]=useState(true);
+
+   useEffect(()=>{
+    const fetchitems = async()=>{
+      try{
+        const response=await fetch(API_URL);
+        if(!response.ok) throw  Error('Did not received expected data')
+        const listitems =await response.json();
+        console.log(listitems);
+        setitems(listitems);
+        setfetcherror(null);
+      }catch(err){
+      console.log(err.message);
+      setfetcherror(err.message);
+      }finally{
+        setisloading(false);
+      }
+    }
+    setTimeout(()=>{
+      (async ()=> await fetchitems())();
+    },2000)
+    
+  },[])
+
+
+
+
 
   const setandsaveitems =(newitems)=>{
     setitems(newitems);
@@ -53,20 +82,29 @@ function App() {
       <Header title='Groceries'/>
      
       <AddItem
-      newitem={newitem}
-      setnewitem={setnewitem}
-      handlesubmit={handlesubmit}
+        newitem={newitem}
+        setnewitem={setnewitem}
+        handlesubmit={handlesubmit}
       />
        <SearchItem
-      search={search}
-      setsearch={setsearch}/>
-      <Content 
-      items={items.filter(item=>((item.item).toLowerCase()).includes(search.toLowerCase()))}
-      setitems={setitems}
-      handlecheck={handlecheck}
-      handledelete={handledelete}
+        search={search}
+        setsearch={setsearch}
       />
-      <Footer length={items.length}/>
+      <main>
+        {
+          isloading && <p>Loading Items....</p>
+        }
+        {fetcherror && <p style={{color:'red'}}>{`Error:${fetcherror}`}</p>}
+    { !fetcherror && !isloading && < Content 
+    items={items.filter(item=>((item.item).toLowerCase()).includes(search.toLowerCase()))}
+    setitems={setitems}
+    handlecheck={handlecheck}
+    handledelete={handledelete}
+    />}
+      </main>
+      <Footer 
+        length={items.length}
+      />
     </div>
 
 
